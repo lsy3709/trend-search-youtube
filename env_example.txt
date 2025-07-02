@@ -1,0 +1,18 @@
+# YouTube API 설정
+YOUTUBE_API_KEY=your_youtube_api_key_here
+
+# Instagram API 설정
+INSTAGRAM_ACCESS_TOKEN=your_instagram_access_token_here
+INSTAGRAM_APP_ID=your_instagram_app_id_here
+INSTAGRAM_APP_SECRET=your_instagram_app_secret_here
+
+# TikTok 설정 (선택사항)
+TIKTOK_SESSION_ID=your_tiktok_session_id_here
+
+# 서버 설정
+HOST=0.0.0.0
+PORT=8000
+DEBUG=True
+
+# 데이터베이스 설정 (선택사항)
+DATABASE_URL=sqlite:///./trends.db 

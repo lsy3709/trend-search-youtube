@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-07-03T06:52:21.350191",
+  "description": "소셜 미디어 트렌드 조사 API 샘플 데이터",
+  "platforms": {
+    "youtube": {
+      "trending_videos": [
+        {
+          "id": "sample_youtube_001",
+          "title": "샘플 YouTube 동영상",
+          "description": "테스트용 샘플 동영상입니다.",
+          "url": "https://www.youtube.com/watch?v=sample",
+          "author": "sample_channel",
+          "view_count": 1000000,
+          "like_count": 50000,
+          "comment_count": 2000,
+          "platform": "youtube"
+        }
+      ]
+    },
+    "tiktok": {
+      "trending_videos": [
+        {
+          "id": "sample_tiktok_001",
+          "title": "샘플 TikTok 동영상",
+          "description": "테스트용 샘플 동영상입니다.",
+          "url": "https://www.tiktok.com/@user/video/sample",
+          "author": "sample_user",
+          "view_count": 800000,
+          "like_count": 40000,
+          "comment_count": 1500,
+          "platform": "tiktok"
+        }
+      ]
+    },
+    "instagram": {
+      "trending_posts": [
+        {
+          "id": "sample_instagram_001",
+          "title": "샘플 Instagram 게시물",
+          "description": "테스트용 샘플 게시물입니다.",
+          "url": "https://www.instagram.com/p/sample/",
+          "author": "sample_user",
+          "view_count": 600000,
+          "like_count": 30000,
+          "comment_count": 1000,
+          "platform": "instagram"
+        }
+      ]
+    }
+  }
+}

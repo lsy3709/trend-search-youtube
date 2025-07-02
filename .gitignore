@@ -1,0 +1,142 @@
+# 환경 변수 파일 (민감한 정보 포함)
+.env
+.env.local
+.env.production
+.env.staging
+
+# Python 가상환경
+venv/
+env/
+ENV/
+.venv/
+
+# Python 캐시 파일
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 배포 관련
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# 단위 테스트 / 커버리지 리포트
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath 파싱된 파일
+*.sage.py
+
+# 환경 변수
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder 프로젝트 설정
+.spyderproject
+.spyproject
+
+# Rope 프로젝트 설정
+.ropeproject
+
+# mkdocs 문서
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS 생성 파일
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 로그 파일
+*.log
+logs/
+
+# 임시 파일
+*.tmp
+*.temp
+
+# API 키 및 인증 정보
+api_keys.txt
+credentials.json
+secrets.json
+
+# 데이터베이스
+*.db
+*.sqlite
+*.sqlite3
+
+# 백업 파일
+*.bak
+*.backup
+
+# 압축 파일
+*.zip
+*.tar.gz
+*.rar
+
+# 프로젝트 특정 파일
+test_api.py
+SERVER_COMMANDS.md 

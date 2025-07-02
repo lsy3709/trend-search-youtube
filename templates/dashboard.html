@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>트렌드 키워드 대시보드</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>트렌드 키워드 대시보드</h1>
+    
+    <!-- 실시간 인기 검색어 섹션 -->
+    <div class="trending-section">
+        <h2>🔥 실시간 인기 검색어</h2>
+        <div id="trending-keywords" class="trending-keywords">
+            <p>로딩 중...</p>
+        </div>
+        <button onclick="loadTrendingKeywords()" class="refresh-btn">새로고침</button>
+    </div>
+    
+    <!-- 키워드 입력 폼 -->
+    <div class="search-section">
+        <h2>🔍 키워드 검색</h2>
+        <form method="get" action="/web">
+            <input type="text" name="keyword" value="{{ keyword }}" placeholder="키워드를 입력하세요" required>
+            <button type="submit">검색</button>
+        </form>
+    </div>
+    
+    {% if error %}
+        <div class="error">에러: {{ error }}</div>
+    {% endif %}
+    
+    {% if keyword %}
+    <div class="results-section">
+        <h2>키워드: <span style="color:blue">{{ keyword }}</span></h2>
+        <h3>총 검색량(조회수 합): {{ '{:,}'.format(total_views) }}</h3>
+        
+        <h3>상위 10개 트렌드(조회수 기준)</h3>
+        <canvas id="trendChart" width="600" height="300"></canvas>
+        <script>
+            // 상위 10개 트렌드 차트 데이터 준비
+            const labels = {{ top_trends | map(attribute='title') | list | tojson }};
+            const data = {{ top_trends | map(attribute='view_count') | list | tojson }};
+            new Chart(document.getElementById('trendChart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '조회수',
+                        data: data,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true } }
+                }
+            });
+        </script>
+        
+        <h3>트렌드 동영상 100개</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>썸네일</th>
+                    <th>제목</th>
+                    <th>작성자</th>
+                    <th>조회수</th>
+                    <th>좋아요</th>
+                    <th>게시일</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for t in trends %}
+                <tr>
+                    <td>{% if t.thumbnail_url %}<img src="{{ t.thumbnail_url }}" width="80">{% endif %}</td>
+                    <td><a href="{{ t.url }}" target="_blank">{{ t.title }}</a></td>
+                    <td>{{ t.author }}</td>
+                    <td>{{ '{:,}'.format(t.view_count or 0) }}</td>
+                    <td>{{ '{:,}'.format(t.like_count or 0) }}</td>
+                    <td>{{ t.published_at.strftime('%Y-%m-%d') if t.published_at else '' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+    
+    <script>
+        // 페이지 로드 시 실시간 인기 검색어 로드
+        window.onload = function() {
+            loadTrendingKeywords();
+        };
+        
+        // 실시간 인기 검색어 로드 함수
+        async function loadTrendingKeywords() {
+            try {
+                const response = await fetch('/api/trends/keywords?max_results=20');
+                const data = await response.json();
+                
+                const container = document.getElementById('trending-keywords');
+                container.innerHTML = '';
+                
+                data.trending_keywords.forEach((item, index) => {
+                    const keywordDiv = document.createElement('div');
+                    keywordDiv.className = 'keyword-item';
+                    keywordDiv.innerHTML = `
+                        <span class="rank">${index + 1}</span>
+                        <span class="keyword">${item.keyword}</span>
+                        <span class="score">🔥 ${item.trending_score}</span>
+                        <span class="platforms">${item.platforms.join(', ')}</span>
+                        <span class="views">👁️ ${(item.total_views / 1000).toFixed(0)}K</span>
+                    `;
+                    container.appendChild(keywordDiv);
+                });
+                
+                // 마지막 업데이트 시간 표시
+                const updateTime = document.createElement('div');
+                updateTime.className = 'update-time';
+                updateTime.innerHTML = `마지막 업데이트: ${new Date().toLocaleTimeString()}`;
+                container.appendChild(updateTime);
+                
+            } catch (error) {
+                console.error('인기 검색어 로드 실패:', error);
+                document.getElementById('trending-keywords').innerHTML = 
+                    '<p class="error">인기 검색어를 불러올 수 없습니다.</p>';
+            }
+        }
+        
+        // 5분마다 자동 새로고침
+        setInterval(loadTrendingKeywords, 5 * 60 * 1000);
+    </script>
+</body>
+</html> 
