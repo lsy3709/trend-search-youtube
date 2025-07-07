@@ -323,4 +323,4 @@ jinja2==3.1.6
 ---
 
 **트렌드 검색 API & 웹 대시보드** - 소셜 미디어 트렌드 분석을 위한 강력한 도구
-"# trend-search-youtube" 
+"# trend-search-youtube"

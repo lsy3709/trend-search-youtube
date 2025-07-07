@@ -21,7 +21,11 @@ load_dotenv()
 from services.youtube_service import YouTubeService
 from services.tiktok_service import TikTokService
 from services.instagram_service import InstagramService
-from models.response_models import TrendResponse, SearchResponse, ErrorResponse
+from services.age_analysis_service import AgeAnalysisService
+from models.response_models import (
+    TrendResponse, SearchResponse, ErrorResponse,
+    AgeGroupKeywordResponse, KeywordAnalysisResponse, AgeGroupTrendResponse
+)
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -45,6 +49,7 @@ app.add_middleware(
 youtube_service = YouTubeService()
 tiktok_service = TikTokService()
 instagram_service = InstagramService()
+age_analysis_service = AgeAnalysisService()
 
 # 정적 파일, 템플릿 설정
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -187,6 +192,92 @@ async def search_instagram(
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Instagram 검색 실패: {str(e)}")
+
+# ==================== 연령대별 키워드 분석 API 엔드포인트 ====================
+
+@app.get("/api/age-analysis/keywords", response_model=List[AgeGroupKeywordResponse])
+async def analyze_keywords_by_age_group(
+    max_results: int = Query(20, description="연령대별 최대 키워드 수", ge=1, le=50),
+    platforms: List[str] = Query(["youtube", "tiktok", "instagram"], description="분석할 플랫폼 목록")
+):
+    """연령대별 키워드 분석 - 각 연령대가 많이 검색하는 키워드 조사"""
+    try:
+        results = await age_analysis_service.analyze_keywords_by_age_group(
+            max_results=max_results,
+            platforms=platforms
+        )
+        return results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"연령대별 키워드 분석 실패: {str(e)}")
+
+@app.get("/api/age-analysis/keyword/{keyword}", response_model=KeywordAnalysisResponse)
+async def analyze_specific_keyword_by_age(
+    keyword: str,
+    platforms: List[str] = Query(["youtube", "tiktok", "instagram"], description="분석할 플랫폼 목록")
+):
+    """특정 키워드의 연령대별 분석 - 키워드가 어떤 연령대에서 인기인지 조사"""
+    try:
+        result = await age_analysis_service.analyze_specific_keyword(
+            keyword=keyword,
+            platforms=platforms
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"키워드 연령대 분석 실패: {str(e)}")
+
+@app.get("/api/age-analysis/trends/{age_group}", response_model=AgeGroupTrendResponse)
+async def get_age_group_trends(
+    age_group: str,
+    max_results: int = Query(15, description="최대 결과 수", ge=1, le=30)
+):
+    """특정 연령대의 트렌드 분석 - 해당 연령대의 관심사와 선호도 조사"""
+    try:
+        # 지원하는 연령대 검증
+        valid_age_groups = ["10대", "20대", "30대", "40대", "50대+"]
+        if age_group not in valid_age_groups:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"지원하지 않는 연령대입니다. 지원 연령대: {', '.join(valid_age_groups)}"
+            )
+        
+        result = await age_analysis_service.get_age_group_trends(
+            age_group=age_group,
+            max_results=max_results
+        )
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"연령대 트렌드 분석 실패: {str(e)}")
+
+@app.get("/api/age-analysis/compare")
+async def compare_age_groups(
+    keywords: List[str] = Query(..., description="비교할 키워드 목록"),
+    platforms: List[str] = Query(["youtube", "tiktok", "instagram"], description="분석할 플랫폼 목록")
+):
+    """연령대별 키워드 비교 분석 - 여러 키워드의 연령대별 인기도 비교"""
+    try:
+        comparison_results = {}
+        
+        for keyword in keywords:
+            result = await age_analysis_service.analyze_specific_keyword(
+                keyword=keyword,
+                platforms=platforms
+            )
+            comparison_results[keyword] = result
+        
+        return {
+            "timestamp": datetime.now().isoformat(),
+            "keywords": keywords,
+            "comparison_results": comparison_results,
+            "summary": {
+                "total_keywords": len(keywords),
+                "platforms": platforms,
+                "age_groups": ["10대", "20대", "30대", "40대", "50대+"]
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"연령대 비교 분석 실패: {str(e)}")
 
 # ==================== 통합 API 엔드포인트 ====================
 

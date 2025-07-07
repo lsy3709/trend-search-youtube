@@ -27,6 +27,34 @@
         </form>
     </div>
     
+    <!-- 연령대별 키워드 분석 섹션 -->
+    <div class="age-analysis-section">
+        <h2>👥 연령대별 키워드 분석</h2>
+        <div class="age-analysis-controls">
+            <button onclick="loadAgeGroupKeywords()" class="analysis-btn">연령대별 키워드 분석</button>
+            <button onclick="loadAgeGroupTrends()" class="analysis-btn">연령대별 트렌드 분석</button>
+            <div class="keyword-input-group">
+                <input type="text" id="keywordForAnalysis" placeholder="분석할 키워드 입력">
+                <button onclick="analyzeSpecificKeyword()" class="analysis-btn">키워드 연령대 분석</button>
+            </div>
+        </div>
+        
+        <!-- 연령대별 키워드 결과 -->
+        <div id="age-group-results" class="age-group-results">
+            <p>분석 버튼을 클릭하여 연령대별 키워드를 확인하세요.</p>
+        </div>
+        
+        <!-- 연령대별 트렌드 결과 -->
+        <div id="age-trends-results" class="age-trends-results">
+            <p>분석 버튼을 클릭하여 연령대별 트렌드를 확인하세요.</p>
+        </div>
+        
+        <!-- 특정 키워드 분석 결과 -->
+        <div id="keyword-analysis-results" class="keyword-analysis-results">
+            <p>키워드를 입력하고 분석 버튼을 클릭하세요.</p>
+        </div>
+    </div>
+    
     {% if error %}
         <div class="error">에러: {{ error }}</div>
     {% endif %}
@@ -131,6 +159,131 @@
         
         // 5분마다 자동 새로고침
         setInterval(loadTrendingKeywords, 5 * 60 * 1000);
+        
+        // 연령대별 키워드 분석 로드
+        async function loadAgeGroupKeywords() {
+            try {
+                const response = await fetch('/api/age-analysis/keywords?max_results=15');
+                const data = await response.json();
+                
+                const container = document.getElementById('age-group-results');
+                container.innerHTML = '<h3>연령대별 인기 키워드</h3>';
+                
+                data.forEach(ageGroup => {
+                    const ageDiv = document.createElement('div');
+                    ageDiv.className = 'age-group';
+                    ageDiv.innerHTML = `
+                        <h4>${ageGroup.age_group} (트렌딩 점수: ${ageGroup.trending_score})</h4>
+                        <div class="keywords-list">
+                            ${ageGroup.keywords.map((kw, index) => `
+                                <span class="keyword-tag ${kw.trending_level.replace(/\s+/g, '-').toLowerCase()}">
+                                    ${index + 1}. ${kw.keyword} (${kw.score})
+                                </span>
+                            `).join('')}
+                        </div>
+                        <div class="platform-distribution">
+                            <strong>플랫폼 분포:</strong> 
+                            ${Object.entries(ageGroup.platform_distribution).map(([platform, count]) => 
+                                `${platform}: ${count}`
+                            ).join(', ')}
+                        </div>
+                    `;
+                    container.appendChild(ageDiv);
+                });
+                
+            } catch (error) {
+                console.error('연령대별 키워드 분석 실패:', error);
+                document.getElementById('age-group-results').innerHTML = 
+                    '<p class="error">연령대별 키워드 분석을 불러올 수 없습니다.</p>';
+            }
+        }
+        
+        // 연령대별 트렌드 분석 로드
+        async function loadAgeGroupTrends() {
+            try {
+                const ageGroups = ['10대', '20대', '30대', '40대', '50대+'];
+                const container = document.getElementById('age-trends-results');
+                container.innerHTML = '<h3>연령대별 트렌드 분석</h3>';
+                
+                for (const ageGroup of ageGroups) {
+                    const response = await fetch(`/api/age-analysis/trends/${encodeURIComponent(ageGroup)}?max_results=10`);
+                    const data = await response.json();
+                    
+                    const ageDiv = document.createElement('div');
+                    ageDiv.className = 'age-trends';
+                    ageDiv.innerHTML = `
+                        <h4>${data.age_group} 트렌드</h4>
+                        <div class="top-keywords">
+                            <strong>상위 키워드:</strong>
+                            ${data.top_keywords.map((kw, index) => `
+                                <span class="keyword-tag">${index + 1}. ${kw.keyword}</span>
+                            `).join('')}
+                        </div>
+                        <div class="platform-preferences">
+                            <strong>플랫폼 선호도:</strong>
+                            ${Object.entries(data.platform_preferences).map(([platform, percentage]) => 
+                                `${platform}: ${percentage}%`
+                            ).join(', ')}
+                        </div>
+                    `;
+                    container.appendChild(ageDiv);
+                }
+                
+            } catch (error) {
+                console.error('연령대별 트렌드 분석 실패:', error);
+                document.getElementById('age-trends-results').innerHTML = 
+                    '<p class="error">연령대별 트렌드 분석을 불러올 수 없습니다.</p>';
+            }
+        }
+        
+        // 특정 키워드 연령대 분석
+        async function analyzeSpecificKeyword() {
+            const keyword = document.getElementById('keywordForAnalysis').value.trim();
+            if (!keyword) {
+                alert('분석할 키워드를 입력해주세요.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/age-analysis/keyword/${encodeURIComponent(keyword)}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('keyword-analysis-results');
+                container.innerHTML = `
+                    <h3>"${data.keyword}" 연령대별 분석</h3>
+                    <div class="keyword-summary">
+                        <p><strong>전체 언급 수:</strong> ${data.total_mentions}</p>
+                        <p><strong>트렌드 방향:</strong> ${data.trending_trend}</p>
+                        <p><strong>감정 점수:</strong> ${data.sentiment_score || 'N/A'}</p>
+                    </div>
+                    
+                    <div class="age-groups-analysis">
+                        <h4>연령대별 분석</h4>
+                        ${Object.entries(data.age_groups).map(([ageGroup, analysis]) => `
+                            <div class="age-analysis-item">
+                                <h5>${ageGroup}</h5>
+                                <p>언급 수: ${analysis.mentions}</p>
+                                <p>관련성 점수: ${analysis.relevance_score}</p>
+                                <p>트렌딩 레벨: ${analysis.trending_level}</p>
+                                <p>플랫폼 분포: ${Object.entries(analysis.platform_mentions).map(([platform, count]) => 
+                                    `${platform}: ${count}`
+                                ).join(', ')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="related-keywords">
+                        <h4>관련 키워드</h4>
+                        ${data.related_keywords.map(kw => `<span class="keyword-tag">${kw}</span>`).join('')}
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('키워드 분석 실패:', error);
+                document.getElementById('keyword-analysis-results').innerHTML = 
+                    '<p class="error">키워드 분석을 불러올 수 없습니다.</p>';
+            }
+        }
     </script>
 </body>
 </html> 

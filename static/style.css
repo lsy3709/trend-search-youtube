@@ -158,3 +158,179 @@ img {
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
+/* 연령대별 분석 섹션 스타일 */
+.age-analysis-section {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.age-analysis-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 20px 0;
+  align-items: center;
+}
+
+.analysis-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.analysis-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(238, 90, 36, 0.3);
+}
+
+.keyword-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.keyword-input-group input {
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  width: 250px;
+}
+
+.age-group-results,
+.age-trends-results,
+.keyword-analysis-results {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+}
+
+.age-group {
+  background: white;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.age-group h4 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.keywords-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.keyword-tag {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.keyword-tag.매우-인기 {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+}
+
+.keyword-tag.인기-상승 {
+  background: linear-gradient(135deg, #feca57 0%, #ff9ff3 100%);
+}
+
+.keyword-tag.관심-증가 {
+  background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%);
+}
+
+.keyword-tag.일반 {
+  background: linear-gradient(135deg, #a8e6cf 0%, #88d8c0 100%);
+}
+
+.platform-distribution,
+.platform-preferences {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f1f3f5;
+  border-radius: 5px;
+  font-size: 0.9em;
+}
+
+.age-trends {
+  background: white;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.age-trends h4 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+}
+
+.top-keywords {
+  margin: 10px 0;
+}
+
+.keyword-summary {
+  background: #e3f2fd;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 15px 0;
+}
+
+.keyword-summary p {
+  margin: 5px 0;
+  font-weight: bold;
+}
+
+.age-groups-analysis {
+  margin: 20px 0;
+}
+
+.age-analysis-item {
+  background: white;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #28a745;
+}
+
+.age-analysis-item h5 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.age-analysis-item p {
+  margin: 5px 0;
+  font-size: 0.9em;
+}
+
+.related-keywords {
+  margin: 20px 0;
+}
+
+.related-keywords h4 {
+  margin-bottom: 10px;
+  color: #333;
+}

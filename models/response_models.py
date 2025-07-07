@@ -121,4 +121,48 @@ class GlobalSearchResponse(BaseModel):
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat()
+        }
+
+class AgeGroupKeywordResponse(BaseModel):
+    """연령대별 키워드 응답 모델"""
+    age_group: str = Field(..., description="연령대 (10대, 20대, 30대, 40대, 50대+)")
+    keywords: List[Dict[str, Any]] = Field(..., description="키워드 목록")
+    total_searches: int = Field(..., description="전체 검색 수")
+    platform_distribution: Dict[str, int] = Field(..., description="플랫폼별 분포")
+    trending_score: float = Field(..., description="트렌딩 점수")
+    timestamp: datetime = Field(default_factory=datetime.now, description="분석 시간")
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+
+class KeywordAnalysisResponse(BaseModel):
+    """키워드 분석 응답 모델"""
+    keyword: str = Field(..., description="키워드")
+    age_groups: Dict[str, Dict[str, Any]] = Field(..., description="연령대별 분석 결과")
+    total_mentions: int = Field(..., description="전체 언급 수")
+    platform_breakdown: Dict[str, int] = Field(..., description="플랫폼별 분포")
+    trending_trend: str = Field(..., description="트렌드 방향 (상승/하락/유지)")
+    related_keywords: List[str] = Field(..., description="관련 키워드")
+    sentiment_score: Optional[float] = Field(None, description="감정 점수 (-1~1)")
+    timestamp: datetime = Field(default_factory=datetime.now, description="분석 시간")
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+
+class AgeGroupTrendResponse(BaseModel):
+    """연령대별 트렌드 응답 모델"""
+    age_group: str = Field(..., description="연령대")
+    top_keywords: List[Dict[str, Any]] = Field(..., description="상위 키워드")
+    trending_topics: List[Dict[str, Any]] = Field(..., description="트렌딩 토픽")
+    platform_preferences: Dict[str, float] = Field(..., description="플랫폼 선호도")
+    content_categories: Dict[str, int] = Field(..., description="콘텐츠 카테고리 분포")
+    timestamp: datetime = Field(default_factory=datetime.now, description="분석 시간")
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
         } 
