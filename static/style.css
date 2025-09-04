@@ -29,6 +29,150 @@ tr:nth-child(even) {
 img {
   border-radius: 6px;
 }
+.placeholder-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 40px;
+  color: #666;
+}
+.placeholder-image {
+  max-width: 240px;
+  opacity: 0.75;
+}
+.placeholder-text {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* YouTube 분석 섹션 */
+.youtube-analyze-section {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+.analyze-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2fr;
+  gap: 15px;
+}
+.panel {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+}
+.panel h3 {
+  margin-top: 0;
+}
+.panel textarea {
+  width: 100%;
+  height: 120px;
+  resize: vertical;
+}
+.panel.settings .grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.panel.settings label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9em;
+}
+.panel.settings input,
+.panel.settings select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.api-key-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.api-key-row .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.api-key-row input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.api-key-row .primary {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.api-key-row button {
+  background: #e9ecef;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.api-key-row button:hover {
+  filter: brightness(0.95);
+}
+.muted {
+  color: #666;
+  font-size: 0.85em;
+}
+.analyze-log {
+  background: #000;
+  color: #0f0;
+  font-family: Consolas, monospace;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  min-height: 44px;
+  white-space: pre-wrap;
+}
+.table-scroll {
+  overflow: auto;
+  max-height: 420px;
+  margin-top: 10px;
+}
+.pager-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+}
+.pager-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.viewer-row {
+  margin-top: 12px;
+}
+.viewer {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 8px;
+}
+.media-viewer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 260px;
+  background: #fff;
+  border: 1px dashed #ccc;
+  border-radius: 8px;
+}
 .error {
   color: red;
   margin: 10px 0;
@@ -333,4 +477,187 @@ img {
 .related-keywords h4 {
   margin-bottom: 10px;
   color: #333;
+}
+
+/* Google Trends 섹션 스타일 */
+.google-trends-section {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+}
+
+.google-trends-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin: 20px 0;
+  align-items: center;
+}
+
+.google-trends-controls select {
+  padding: 10px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  font-size: 1em;
+  background: white;
+}
+
+.trends-btn {
+  background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.trends-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+}
+
+.google-trends-results {
+  margin-top: 20px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #4285f4;
+}
+
+.trending-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 15px 0;
+}
+
+.trending-item {
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.trending-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.trending-item .rank {
+  background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  min-width: 30px;
+  text-align: center;
+}
+
+.trending-item .keyword {
+  font-weight: bold;
+  font-size: 1.1em;
+  flex: 1;
+}
+
+.trending-item .source {
+  font-size: 0.8em;
+  color: #666;
+  background: #f1f3f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.category-trends {
+  background: white;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.category-trends h4 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+  border-bottom: 2px solid #4285f4;
+  padding-bottom: 5px;
+}
+
+.analysis-section {
+  background: white;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.analysis-section h4 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.related-queries {
+  margin: 10px 0;
+}
+
+.related-queries h5 {
+  margin: 8px 0;
+  color: #555;
+  font-size: 0.9em;
+}
+
+.query-tag {
+  background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  margin: 2px;
+  display: inline-block;
+}
+
+.query-tag.rising {
+  background: linear-gradient(135deg, #ea4335 0%, #fbbc04 100%);
+}
+
+.region-interest,
+.age-interest {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.region-item,
+.age-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.region-name,
+.age-group {
+  font-weight: bold;
+  color: #333;
+}
+
+.interest-score {
+  background: linear-gradient(135deg, #4285f4 0%, #34a853 100%);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 0.9em;
 }

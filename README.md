@@ -99,8 +99,25 @@ copy env_example.txt .env
 ### 5. 서버 실행
 
 ```bash
-python -m uvicorn main:app --reload
+# Windows 권장 (가상환경의 파이썬 명시 + 바인딩 호스트/포트 지정)
+venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
+
+# macOS/Linux (또는 OS 공통 대안)
+python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
+
+### 5-1. 테스트 실행
+
+```bash
+venv\Scripts\python.exe -m pytest -q
+```
+
+### 5-2. 트렌드 분석 UI 사용
+
+- `/web` → "YouTube 트렌드 분석" 섹션
+- 채널/키워드/둘다, 쇼츠/롱폼 등 옵션 설정 후 "시작하기"
+- 결과 표 하단의 미디어 뷰어에서 영상/썸네일 인라인 확인
+- 페이징 지원(페이지 크기 선택, 이전/다음)
 
 ### 6. 웹 대시보드 접속
 
@@ -132,6 +149,32 @@ GET /api/tiktok/{keyword}
 # Instagram 전용 검색
 GET /api/instagram/{keyword}
 ```
+
+### YouTube 분석 API (신규)
+
+```bash
+POST /api/youtube/analyze
+Content-Type: application/json
+
+{
+  "mode": "channel|keyword|both",
+  "channel_handles": ["@채널핸들"],
+  "keywords": ["키워드1", "키워드2"],
+  "form": "shorts|long|both",
+  "shorts_threshold_seconds": 180,
+  "timeframe_days": 30,
+  "region": "KR",
+  "language": "ko",
+  "max_per_channel": 10,
+  "max_per_keyword": 50,
+  "min_view_count": 20000,
+  "min_views_per_hour": 600.0,
+  "wait_minutes_on_quota": 30,
+  "quota_wait_behavior": "none|wait|skip"
+}
+```
+
+응답에는 테이블 컬럼이 포함됩니다: `채널명, 제목, 업로드됨, 조회수, 시간당 조회수, 구독자수, 조회수/구독자수, 영상 길이, 영상 링크, 썸네일 링크`.
 
 ### 실시간 트렌드 API
 
@@ -240,12 +283,25 @@ venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+추가: `ModuleNotFoundError: No module named 'pytrends'` 발생 시
+
+```bash
+# requirements.txt 내 pytrends가 포함되어 있어야 합니다
+pip install -r requirements.txt
+```
+
 #### 4. 포트 충돌
 
 ```bash
 # 다른 포트로 서버 실행
 python -m uvicorn main:app --reload --port 8001
 ```
+
+추가: Windows에서 `WinError 10013` 발생 시
+
+- 명령에 `--host 127.0.0.1 --port 8000`을 명시해 로컬 호스트로 바인딩
+- 다른 보안/방화벽 프로그램에서 Python/uvicorn 허용
+- 필요 시 관리자 권한 콘솔에서 실행
 
 #### 5. YouTube API 오류
 

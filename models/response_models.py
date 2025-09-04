@@ -4,7 +4,7 @@ API 응답 모델 정의
 """
 
 from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime
 
 class TrendResponse(BaseModel):
@@ -166,3 +166,47 @@ class AgeGroupTrendResponse(BaseModel):
         json_encoders = {
             datetime: lambda v: v.isoformat()
         } 
+
+# ==================== YouTube 분석 요청/응답 모델 ====================
+
+class YouTubeAnalyzeRequest(BaseModel):
+    """YouTube 분석 요청 모델
+    - 실행모드/폼(쇼츠/롱폼)/기간/국가/언어/최소 조건 등을 포함
+    """
+    mode: Literal['channel', 'keyword', 'both'] = Field('keyword', description="실행 모드")
+    channel_handles: Optional[List[str]] = Field(None, description="채널 핸들(@handle) 목록")
+    keywords: Optional[List[str]] = Field(None, description="검색 키워드 목록")
+    form: Literal['shorts', 'long', 'both'] = Field('both', description="쇼츠/롱폼/전체")
+    shorts_threshold_seconds: int = Field(180, description="쇼츠 기준(초)")
+    timeframe_days: int = Field(30, description="최근 며칠 내 영상만 분석")
+    region: str = Field('KR', description="대상국가(regionCode)")
+    language: str = Field('ko', description="언어(참고용)")
+    max_per_channel: int = Field(10, ge=1, le=50, description="채널당 최대 검색 수")
+    max_per_keyword: int = Field(50, ge=1, le=50, description="검색어당 최대 검색 수")
+    min_view_count: int = Field(20000, description="최소 조회수")
+    min_views_per_hour: float = Field(600.0, description="최소 시간당 조회수")
+    wait_minutes_on_quota: int = Field(30, description="API 키 쿼터 소진 시 대기시간(분)")
+    quota_wait_behavior: Literal['none', 'wait', 'skip'] = Field('none', description="쿼터 소진 시 동작")
+
+class YouTubeAnalyzeRow(BaseModel):
+    """YouTube 분석 결과 단일 행 모델"""
+    video_id: str = Field(..., description="동영상 ID")
+    channel_id: Optional[str] = Field(None, description="채널 ID")
+    channel_name: str = Field(..., description="채널명")
+    title: str = Field(..., description="제목")
+    published_at: Optional[datetime] = Field(None, description="업로드 시각")
+    view_count: Optional[int] = Field(None, description="조회수")
+    views_per_hour: Optional[float] = Field(None, description="시간당 조회수")
+    subscriber_count: Optional[int] = Field(None, description="구독자 수")
+    view_to_subscriber_ratio: Optional[float] = Field(None, description="조회수/구독자수")
+    duration: Optional[str] = Field(None, description="영상 길이 (예: 12:34)")
+    video_url: str = Field(..., description="영상 링크")
+    thumbnail_url: Optional[str] = Field(None, description="썸네일 링크")
+
+class YouTubeAnalyzeResponse(BaseModel):
+    """YouTube 분석 응답 모델"""
+    rows: List[YouTubeAnalyzeRow] = Field(..., description="분석 결과 행 목록")
+    total: int = Field(..., description="총 수집 개수")
+    filtered: int = Field(..., description="필터링 후 개수")
+    generated_at: datetime = Field(default_factory=datetime.now, description="생성 시각")
+    settings: Dict[str, Any] = Field(..., description="요청 설정 요약")

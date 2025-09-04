@@ -6,6 +6,8 @@ YouTube, TikTok, Instagram 플랫폼의 트렌드와 키워드를 조사하는 A
 from fastapi import FastAPI, HTTPException, Query, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.responses import StreamingResponse
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import uvicorn
@@ -13,6 +15,8 @@ import os
 from dotenv import load_dotenv
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+import io
+import pandas as pd
 
 # 환경 변수 로드
 load_dotenv()
@@ -22,9 +26,13 @@ from services.youtube_service import YouTubeService
 from services.tiktok_service import TikTokService
 from services.instagram_service import InstagramService
 from services.age_analysis_service import AgeAnalysisService
+from services.google_trends_service import GoogleTrendsService
 from models.response_models import (
     TrendResponse, SearchResponse, ErrorResponse,
     AgeGroupKeywordResponse, KeywordAnalysisResponse, AgeGroupTrendResponse
+)
+from models.response_models import (
+    YouTubeAnalyzeRequest, YouTubeAnalyzeResponse
 )
 
 # FastAPI 앱 생성
@@ -50,20 +58,16 @@ youtube_service = YouTubeService()
 tiktok_service = TikTokService()
 instagram_service = InstagramService()
 age_analysis_service = AgeAnalysisService()
+google_trends_service = GoogleTrendsService()
 
 # 정적 파일, 템플릿 설정
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-@app.get("/", response_model=Dict[str, str])
-async def root():
-    """API 루트 엔드포인트"""
-    return {
-        "message": "소셜 미디어 트렌드 조사 API에 오신 것을 환영합니다!",
-        "docs": "/docs",
-        "version": "1.0.0",
-        "web_dashboard": "/web"
-    }
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    """루트 접근 시 웹 대시보드로 리다이렉트"""
+    return RedirectResponse(url="/web", status_code=307)
 
 @app.get("/health")
 async def health_check():
@@ -105,6 +109,47 @@ async def search_youtube(
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"YouTube 검색 실패: {str(e)}")
+
+@app.post("/api/youtube/analyze", response_model=YouTubeAnalyzeResponse)
+async def analyze_youtube(req: YouTubeAnalyzeRequest):
+    """YouTube 분석: 채널/키워드, 기간/폼/임계치 필터 적용"""
+    try:
+        result = await youtube_service.analyze(req)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"YouTube 분석 실패: {str(e)}")
+
+@app.post("/api/youtube/analyze/export")
+async def export_youtube_analysis(req: YouTubeAnalyzeRequest):
+    """YouTube 분석 결과를 엑셀(.xlsx)로 다운로드"""
+    try:
+        result = await youtube_service.analyze(req)
+        # DataFrame 변환
+        rows = [
+            {
+                "채널명": r.channel_name,
+                "제목": r.title,
+                "업로드됨": r.published_at.isoformat() if r.published_at else "",
+                "조회수": r.view_count,
+                "시간당 조회수": r.views_per_hour,
+                "구독자수": r.subscriber_count,
+                "조회수/구독자수": r.view_to_subscriber_ratio,
+                "영상 길이": r.duration,
+                "영상 링크": r.video_url,
+                "썸네일 링크": r.thumbnail_url,
+            }
+            for r in result.rows
+        ]
+        df = pd.DataFrame(rows)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="analysis")
+        output.seek(0)
+        filename = f"youtube_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
+        return StreamingResponse(output, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", headers=headers)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"엑셀 내보내기 실패: {str(e)}")
 
 @app.get("/api/youtube/channels/{channel_id}")
 async def get_youtube_channel_info(channel_id: str):
@@ -192,6 +237,104 @@ async def search_instagram(
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Instagram 검색 실패: {str(e)}")
+
+# ==================== Google Trends API 엔드포인트 ====================
+
+@app.get("/api/google-trends/realtime")
+async def get_google_trends_realtime(
+    region: str = Query("KR", description="지역 코드 (KR, US, JP, CN, GB)")
+):
+    """Google Trends 실시간 인기 검색어 조회"""
+    try:
+        results = await google_trends_service.get_realtime_trending_searches(region=region)
+        return {
+            "region": region,
+            "trending_searches": results,
+            "total_count": len(results),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Google Trends 실시간 검색어 조회 실패: {str(e)}")
+
+@app.get("/api/google-trends/category/{category}")
+async def get_google_trends_by_category(
+    category: str,
+    region: str = Query("KR", description="지역 코드 (KR, US, JP, CN, GB)")
+):
+    """Google Trends 카테고리별 인기 검색어 조회"""
+    try:
+        valid_categories = ["all", "entertainment", "business", "sports", "health", "science_tech", "top_stories"]
+        if category not in valid_categories:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"지원하지 않는 카테고리입니다. 지원 카테고리: {', '.join(valid_categories)}"
+            )
+        
+        results = await google_trends_service.get_trending_searches_by_category(
+            category=category, region=region
+        )
+        return {
+            "category": category,
+            "region": region,
+            "trending_searches": results,
+            "total_count": len(results),
+            "timestamp": datetime.now().isoformat()
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"카테고리별 검색어 조회 실패: {str(e)}")
+
+@app.get("/api/google-trends/keyword/{keyword}/interest")
+async def get_keyword_interest(
+    keyword: str,
+    region: str = Query("KR", description="지역 코드"),
+    timeframe: str = Query("today 12-m", description="시간 범위 (today 12-m, today 5-y, now 1-H)")
+):
+    """특정 키워드의 시간별 관심도 조회"""
+    try:
+        result = await google_trends_service.get_keyword_interest_over_time(
+            keyword=keyword, region=region, timeframe=timeframe
+        )
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"키워드 관심도 조회 실패: {str(e)}")
+
+@app.get("/api/google-trends/keyword/{keyword}/related")
+async def get_related_queries(
+    keyword: str,
+    region: str = Query("KR", description="지역 코드")
+):
+    """특정 키워드의 관련 검색어 조회"""
+    try:
+        result = await google_trends_service.get_related_queries(keyword=keyword, region=region)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"관련 검색어 조회 실패: {str(e)}")
+
+@app.get("/api/google-trends/keyword/{keyword}/regions")
+async def get_interest_by_regions(
+    keyword: str,
+    region: str = Query("KR", description="기준 지역 코드")
+):
+    """특정 키워드의 지역별 관심도 조회"""
+    try:
+        result = await google_trends_service.get_interest_by_region(keyword=keyword, region=region)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"지역별 관심도 조회 실패: {str(e)}")
+
+@app.get("/api/google-trends/keyword/{keyword}/age-groups")
+async def get_age_group_interest(
+    keyword: str,
+    region: str = Query("KR", description="지역 코드")
+):
+    """특정 키워드의 연령대별 관심도 조회 (추정 데이터)"""
+    try:
+        result = await google_trends_service.get_age_group_interest(keyword=keyword, region=region)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"연령대별 관심도 조회 실패: {str(e)}")
 
 # ==================== 연령대별 키워드 분석 API 엔드포인트 ====================
 

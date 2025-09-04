@@ -26,6 +26,164 @@
             <button type="submit">검색</button>
         </form>
     </div>
+
+    <!-- YouTube 트렌드 분석 섹션 -->
+    <div class="youtube-analyze-section">
+        <h2>🎬 YouTube 트렌드 분석</h2>
+        <div class="analyze-panels">
+            <div class="panel">
+                <h3>채널 핸들명</h3>
+                <textarea id="channelHandles" placeholder="@handle 형식, 줄바꿈으로 여러 개 입력"></textarea>
+            </div>
+            <div class="panel">
+                <h3>키워드 입력</h3>
+                <textarea id="analyzeKeywords" placeholder="키워드, 줄바꿈으로 여러 개 입력"></textarea>
+            </div>
+            <div class="panel settings">
+                <h3>설정</h3>
+                <div class="grid-2">
+                    <label>실행모드
+                        <select id="mode">
+                            <option value="channel">채널</option>
+                            <option value="keyword" selected>키워드</option>
+                            <option value="both">둘다</option>
+                        </select>
+                    </label>
+                    <label>쇼츠/롱폼
+                        <select id="form">
+                            <option value="both" selected>둘다</option>
+                            <option value="shorts">쇼츠</option>
+                            <option value="long">롱폼</option>
+                        </select>
+                    </label>
+                    <label>쇼츠 기준(초)
+                        <input id="shortsThreshold" type="number" value="180" min="10">
+                    </label>
+                    <label>최근 며칠간 분석
+                        <input id="timeframeDays" type="number" value="30" min="1">
+                    </label>
+                    <label>대상국가
+                        <input id="region" type="text" value="KR">
+                    </label>
+                    <label>언어
+                        <input id="language" type="text" value="ko">
+                    </label>
+                    <label>채널당 최대 검색 수
+                        <input id="maxPerChannel" type="number" value="10" min="1" max="50">
+                    </label>
+                    <label>검색어당 최대 검색 수
+                        <input id="maxPerKeyword" type="number" value="50" min="1" max="50">
+                    </label>
+                    <label>최소 조회수
+                        <input id="minViewCount" type="number" value="20000" min="0">
+                    </label>
+                    <label>최소 시간당 조회수
+                        <input id="minVph" type="number" value="600" step="0.1" min="0">
+                    </label>
+                    <label>쿼터 소진시 대기(분)
+                        <input id="waitMinutes" type="number" value="30" min="0">
+                    </label>
+                    <label>API 키 대기 상태
+                        <select id="quotaBehavior">
+                            <option value="none" selected>대기 중이 아님</option>
+                            <option value="skip">대기 스킵 후 다음 키로</option>
+                            <option value="wait">대기</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="api-key-row">
+            <div>
+                <strong>API Key</strong> · YouTube Data API v3 키:
+                <input id="ytApiKeyUi" type="password" placeholder="준비중입니다." disabled>
+                <small class="muted">(서버의 .env 키 사용 · 준비중입니다.)</small>
+            </div>
+            <div class="actions">
+                <button id="btnStartAnalyze" class="primary" onclick="startAnalyze()">시작하기</button>
+                <button onclick="stopAnalyze()">중단하기</button>
+                <button onclick="clearAnalyzeResults()">결과 지우기</button>
+                <button onclick="exportAnalyzeExcel()">엑셀로 저장</button>
+                <button onclick="saveCurrentJob()">현재 작업 저장</button>
+                <button onclick="loadSavedJob()">작업 불러오기</button>
+                <button onclick="alert('준비중입니다.')">라이선스 관리</button>
+            </div>
+        </div>
+
+        <div id="analyzeLog" class="analyze-log"></div>
+
+        <div class="results-section" id="analyzeResults" style="display:none;">
+            <h3>결과</h3>
+            <div class="pager-row">
+                <label>페이지 크기
+                    <select id="pageSize" onchange="setPageSize(this.value)">
+                        <option value="10">10</option>
+                        <option value="25" selected>25</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </label>
+                <div class="pager-actions">
+                    <button onclick="prevPage()">이전</button>
+                    <span id="pageInfo"></span>
+                    <button onclick="nextPage()">다음</button>
+                </div>
+            </div>
+            <div class="table-scroll">
+                <table id="analyzeTable">
+                    <thead>
+                        <tr>
+                            <th>채널명</th>
+                            <th>제목</th>
+                            <th>업로드됨</th>
+                            <th>조회수</th>
+                            <th>시간당 조회수</th>
+                            <th>구독자수</th>
+                            <th>조회수/구독자수</th>
+                            <th>영상 길이</th>
+                            <th>영상 링크</th>
+                            <th>열기</th>
+                            <th>썸네일</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="viewer-row">
+                <div class="viewer">
+                    <h4>미디어 뷰어</h4>
+                    <div id="mediaViewer" class="media-viewer">
+                        <p class="muted">영상을 선택하면 이 영역에 표시됩니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Google Trends 실시간 인기 검색어 섹션 -->
+    <div class="google-trends-section">
+        <h2>📊 Google Trends 실시간 인기 검색어</h2>
+        <div class="google-trends-controls">
+            <select id="regionSelect" onchange="loadGoogleTrends()">
+                <option value="KR">한국</option>
+                <option value="US">미국</option>
+                <option value="JP">일본</option>
+                <option value="CN">중국</option>
+                <option value="GB">영국</option>
+            </select>
+            <button onclick="loadGoogleTrends()" class="trends-btn">실시간 인기 검색어</button>
+            <button onclick="loadGoogleTrendsByCategory()" class="trends-btn">카테고리별 인기 검색어</button>
+            <div class="keyword-input-group">
+                <input type="text" id="googleTrendsKeyword" placeholder="키워드 입력">
+                <button onclick="analyzeGoogleTrendsKeyword()" class="trends-btn">키워드 분석</button>
+            </div>
+        </div>
+        
+        <!-- Google Trends 결과 -->
+        <div id="google-trends-results" class="google-trends-results">
+            <p>지역을 선택하고 버튼을 클릭하여 Google Trends 데이터를 확인하세요.</p>
+        </div>
+    </div>
     
     <!-- 연령대별 키워드 분석 섹션 -->
     <div class="age-analysis-section">
@@ -61,58 +219,10 @@
     
     {% if keyword %}
     <div class="results-section">
-        <h2>키워드: <span style="color:blue">{{ keyword }}</span></h2>
-        <h3>총 검색량(조회수 합): {{ '{:,}'.format(total_views) }}</h3>
-        
-        <h3>상위 10개 트렌드(조회수 기준)</h3>
-        <canvas id="trendChart" width="600" height="300"></canvas>
-        <script>
-            // 상위 10개 트렌드 차트 데이터 준비
-            const labels = {{ top_trends | map(attribute='title') | list | tojson }};
-            const data = {{ top_trends | map(attribute='view_count') | list | tojson }};
-            new Chart(document.getElementById('trendChart'), {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '조회수',
-                        data: data,
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)'
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    plugins: { legend: { display: false } },
-                    scales: { x: { beginAtZero: true } }
-                }
-            });
-        </script>
-        
-        <h3>트렌드 동영상 100개</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>썸네일</th>
-                    <th>제목</th>
-                    <th>작성자</th>
-                    <th>조회수</th>
-                    <th>좋아요</th>
-                    <th>게시일</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for t in trends %}
-                <tr>
-                    <td>{% if t.thumbnail_url %}<img src="{{ t.thumbnail_url }}" width="80">{% endif %}</td>
-                    <td><a href="{{ t.url }}" target="_blank">{{ t.title }}</a></td>
-                    <td>{{ t.author }}</td>
-                    <td>{{ '{:,}'.format(t.view_count or 0) }}</td>
-                    <td>{{ '{:,}'.format(t.like_count or 0) }}</td>
-                    <td>{{ t.published_at.strftime('%Y-%m-%d') if t.published_at else '' }}</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+        <div class="placeholder-block">
+            <img src="/static/coming-soon.png" alt="준비중입니다." class="placeholder-image" onerror="this.style.display='none';document.getElementById('placeholder-text').style.display='block';">
+            <p id="placeholder-text" class="placeholder-text">준비중입니다.</p>
+        </div>
     </div>
     {% endif %}
     
@@ -159,6 +269,369 @@
         
         // 5분마다 자동 새로고침
         setInterval(loadTrendingKeywords, 5 * 60 * 1000);
+
+        // ------------------ YouTube 분석 ------------------
+        let analyzeAbortController = null;
+        let analyzeRows = [];
+        let currentPage = 1;
+        let pageSize = 25;
+
+        function collectAnalyzePayload() {
+            // 한글: 폼 값을 수집하여 API 요청 페이로드 구성
+            const parseList = (v) => v.split(/\n+/).map(s => s.trim()).filter(Boolean);
+            return {
+                mode: document.getElementById('mode').value,
+                channel_handles: parseList(document.getElementById('channelHandles').value),
+                keywords: parseList(document.getElementById('analyzeKeywords').value),
+                form: document.getElementById('form').value,
+                shorts_threshold_seconds: Number(document.getElementById('shortsThreshold').value || 180),
+                timeframe_days: Number(document.getElementById('timeframeDays').value || 30),
+                region: document.getElementById('region').value || 'KR',
+                language: document.getElementById('language').value || 'ko',
+                max_per_channel: Number(document.getElementById('maxPerChannel').value || 10),
+                max_per_keyword: Number(document.getElementById('maxPerKeyword').value || 50),
+                min_view_count: Number(document.getElementById('minViewCount').value || 20000),
+                min_views_per_hour: Number(document.getElementById('minVph').value || 600),
+                wait_minutes_on_quota: Number(document.getElementById('waitMinutes').value || 30),
+                quota_wait_behavior: document.getElementById('quotaBehavior').value
+            };
+        }
+
+        async function startAnalyze() {
+            try {
+                const payload = collectAnalyzePayload();
+                const log = document.getElementById('analyzeLog');
+                log.innerText = `[${new Date().toLocaleTimeString()}] 시작 | 설정 로드...`;
+
+                analyzeAbortController = new AbortController();
+                const resp = await fetch('/api/youtube/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    signal: analyzeAbortController.signal
+                });
+
+                if (!resp.ok) {
+                    const errText = await resp.text();
+                    log.innerText += `\n[오류] ${errText}`;
+                    alert('분석 요청 실패: ' + resp.status);
+                    return;
+                }
+
+                const data = await resp.json();
+                renderAnalyzeResults(data);
+                log.innerText += `\n[완료] 총 ${data.total}건 중 ${data.filtered}건 표시`;
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    document.getElementById('analyzeLog').innerText += `\n[중단] 사용자가 중단했습니다.`;
+                } else {
+                    document.getElementById('analyzeLog').innerText += `\n[오류] ${e}`;
+                }
+            }
+        }
+
+        function stopAnalyze() {
+            if (analyzeAbortController) {
+                analyzeAbortController.abort();
+            }
+        }
+
+        function clearAnalyzeResults() {
+            document.querySelector('#analyzeTable tbody').innerHTML = '';
+            document.getElementById('analyzeResults').style.display = 'none';
+            document.getElementById('analyzeLog').innerText = '';
+            document.getElementById('mediaViewer').innerHTML = '<p class="muted">영상을 선택하면 이 영역에 표시됩니다.</p>';
+            analyzeRows = [];
+            currentPage = 1;
+        }
+
+        function renderAnalyzeResults(data) {
+            analyzeRows = data.rows || [];
+            currentPage = 1;
+            renderAnalyzePage();
+            document.getElementById('analyzeResults').style.display = '';
+        }
+
+        function renderAnalyzePage() {
+            const tbody = document.querySelector('#analyzeTable tbody');
+            tbody.innerHTML = '';
+            const total = analyzeRows.length;
+            const start = (currentPage - 1) * pageSize;
+            const end = Math.min(start + pageSize, total);
+            for (let i = start; i < end; i++) {
+                const row = analyzeRows[i];
+                const ratio = row.view_to_subscriber_ratio == null ? '' : Number(row.view_to_subscriber_ratio).toFixed(2);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.channel_name || ''}</td>
+                    <td>${escapeHtml(row.title || '')}</td>
+                    <td>${row.published_at ? new Date(row.published_at).toLocaleString() : ''}</td>
+                    <td>${fmtNum(row.view_count)}</td>
+                    <td>${fmtNum(row.views_per_hour)}</td>
+                    <td>${fmtNum(row.subscriber_count)}</td>
+                    <td>${ratio}</td>
+                    <td>${row.duration || ''}</td>
+                    <td><a href="${row.video_url}" onclick="showVideo('${encodeURIComponentForAttr('${' + 'row.video_url' + '}')}'); return false;">링크</a></td>
+                    <td><button onclick="showVideo('${escapeJs(row.video_url)}')">영상 열기</button></td>
+                    <td>${row.thumbnail_url ? `<button onclick=\"showThumb('${escapeJs(row.thumbnail_url)}')\">썸네일 열기</button>` : ''}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+            const pageInfo = document.getElementById('pageInfo');
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            pageInfo.textContent = `${currentPage} / ${totalPages} (총 ${fmtNum(total)}건)`;
+        }
+
+        function setPageSize(v) { pageSize = Number(v||25); currentPage = 1; renderAnalyzePage(); }
+        function prevPage() { if (currentPage > 1) { currentPage--; renderAnalyzePage(); } }
+        function nextPage() { const totalPages = Math.max(1, Math.ceil((analyzeRows.length||0)/pageSize)); if (currentPage < totalPages) { currentPage++; renderAnalyzePage(); } }
+
+        function showVideo(url) {
+            if (!url) return;
+            const viewer = document.getElementById('mediaViewer');
+            const safe = escapeHtml(url);
+            viewer.innerHTML = `<video controls src="${safe}" style="max-width:100%;height:auto"></video>`;
+            // YouTube 링크인 경우 iframe으로 처리
+            if (/youtube\.com|youtu\.be/.test(url)) {
+                const vid = extractYouTubeId(url);
+                if (vid) viewer.innerHTML = `<iframe width="560" height="315" src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>`;
+            }
+        }
+
+        function showThumb(url) {
+            if (!url) return;
+            const viewer = document.getElementById('mediaViewer');
+            const safe = escapeHtml(url);
+            viewer.innerHTML = `<img src="${safe}" alt="thumbnail" style="max-width:100%;height:auto" />`;
+        }
+
+        function extractYouTubeId(u){
+            try {
+                const m = String(u).match(/[?&]v=([^&#]+)/) || String(u).match(/youtu\.be\/([^?&#]+)/);
+                return m ? m[1] : '';
+            } catch { return ''; }
+        }
+
+        function exportAnalyzeExcel() {
+            const payload = collectAnalyzePayload();
+            const a = document.createElement('a');
+            a.href = '/api/youtube/analyze/export';
+            // POST로 보내야 하므로 fetch 후 blob 다운로드
+            fetch('/api/youtube/analyze/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(r => {
+                if (!r.ok) throw new Error('엑셀 요청 실패');
+                return r.blob();
+            }).then(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'youtube_analysis.xlsx';
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+            }).catch(err => alert(err));
+        }
+
+        function saveCurrentJob() {
+            try {
+                const key = 'yt_analyze_job_v1';
+                localStorage.setItem(key, JSON.stringify(collectAnalyzePayload()));
+                alert('현재 작업 저장 완료');
+            } catch (e) { alert('저장 실패'); }
+        }
+
+        function loadSavedJob() {
+            try {
+                const key = 'yt_analyze_job_v1';
+                const data = JSON.parse(localStorage.getItem(key) || '{}');
+                if (!Object.keys(data).length) { alert('저장된 작업이 없습니다.'); return; }
+                // 한글: 각 필드 채우기
+                document.getElementById('mode').value = data.mode || 'keyword';
+                document.getElementById('form').value = data.form || 'both';
+                document.getElementById('shortsThreshold').value = data.shorts_threshold_seconds ?? 180;
+                document.getElementById('timeframeDays').value = data.timeframe_days ?? 30;
+                document.getElementById('region').value = data.region || 'KR';
+                document.getElementById('language').value = data.language || 'ko';
+                document.getElementById('maxPerChannel').value = data.max_per_channel ?? 10;
+                document.getElementById('maxPerKeyword').value = data.max_per_keyword ?? 50;
+                document.getElementById('minViewCount').value = data.min_view_count ?? 20000;
+                document.getElementById('minVph').value = data.min_views_per_hour ?? 600;
+                document.getElementById('waitMinutes').value = data.wait_minutes_on_quota ?? 30;
+                document.getElementById('quotaBehavior').value = data.quota_wait_behavior || 'none';
+                document.getElementById('channelHandles').value = (data.channel_handles || []).join('\n');
+                document.getElementById('analyzeKeywords').value = (data.keywords || []).join('\n');
+                alert('작업 불러오기 완료');
+            } catch (e) { alert('불러오기 실패'); }
+        }
+
+        function fmtNum(v){ return (v===null||v===undefined||Number.isNaN(v))?'': new Intl.NumberFormat().format(v); }
+        function escapeHtml(str){ return (str||'').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s])); }
+        function escapeJs(str){ return String(str||'').replace(/['"\\]/g, m => ({"'":"\\'","\"":"\\\"","\\":"\\\\"}[m])); }
+        
+        // Google Trends 실시간 인기 검색어 로드
+        async function loadGoogleTrends() {
+            const region = document.getElementById('regionSelect').value;
+            try {
+                const response = await fetch(`/api/google-trends/realtime?region=${region}`);
+                const data = await response.json();
+                
+                const container = document.getElementById('google-trends-results');
+                container.innerHTML = `
+                    <h3>🌍 ${getRegionName(region)} 실시간 인기 검색어</h3>
+                    <div class="trending-list">
+                        ${data.trending_searches.map((item, index) => `
+                            <div class="trending-item">
+                                <span class="rank">${item.rank}</span>
+                                <span class="keyword">${item.keyword}</span>
+                                <span class="source">${item.source}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <p class="update-time">마지막 업데이트: ${new Date().toLocaleTimeString()}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Google Trends 로드 실패:', error);
+                document.getElementById('google-trends-results').innerHTML = 
+                    '<p class="error">Google Trends 데이터를 불러올 수 없습니다.</p>';
+            }
+        }
+        
+        // Google Trends 카테고리별 인기 검색어 로드
+        async function loadGoogleTrendsByCategory() {
+            const region = document.getElementById('regionSelect').value;
+            const categories = ['entertainment', 'business', 'sports', 'health', 'science_tech'];
+            
+            try {
+                const container = document.getElementById('google-trends-results');
+                container.innerHTML = '<h3>📂 카테고리별 인기 검색어</h3>';
+                
+                for (const category of categories) {
+                    const response = await fetch(`/api/google-trends/category/${category}?region=${region}`);
+                    const data = await response.json();
+                    
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'category-trends';
+                    categoryDiv.innerHTML = `
+                        <h4>${getCategoryName(category)}</h4>
+                        <div class="trending-list">
+                            ${data.trending_searches.slice(0, 5).map((item, index) => `
+                                <div class="trending-item">
+                                    <span class="rank">${item.rank}</span>
+                                    <span class="keyword">${item.keyword}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    container.appendChild(categoryDiv);
+                }
+                
+            } catch (error) {
+                console.error('카테고리별 Google Trends 로드 실패:', error);
+                document.getElementById('google-trends-results').innerHTML = 
+                    '<p class="error">카테고리별 데이터를 불러올 수 없습니다.</p>';
+            }
+        }
+        
+        // Google Trends 키워드 분석
+        async function analyzeGoogleTrendsKeyword() {
+            const keyword = document.getElementById('googleTrendsKeyword').value.trim();
+            const region = document.getElementById('regionSelect').value;
+            
+            if (!keyword) {
+                alert('분석할 키워드를 입력해주세요.');
+                return;
+            }
+            
+            try {
+                const container = document.getElementById('google-trends-results');
+                container.innerHTML = '<h3>🔍 키워드 분석 중...</h3>';
+                
+                // 여러 API 호출
+                const [interestData, relatedData, regionData, ageData] = await Promise.all([
+                    fetch(`/api/google-trends/keyword/${encodeURIComponent(keyword)}/interest?region=${region}`).then(r => r.json()),
+                    fetch(`/api/google-trends/keyword/${encodeURIComponent(keyword)}/related?region=${region}`).then(r => r.json()),
+                    fetch(`/api/google-trends/keyword/${encodeURIComponent(keyword)}/regions?region=${region}`).then(r => r.json()),
+                    fetch(`/api/google-trends/keyword/${encodeURIComponent(keyword)}/age-groups?region=${region}`).then(r => r.json())
+                ]);
+                
+                container.innerHTML = `
+                    <h3>"${keyword}" Google Trends 분석</h3>
+                    
+                    <div class="analysis-section">
+                        <h4>📈 관심도 추이</h4>
+                        <p>평균 관심도: ${interestData.average_interest}/100</p>
+                        <p>최대 관심도: ${interestData.max_interest}/100</p>
+                        <p>데이터 소스: ${interestData.source}</p>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h4>🔗 관련 검색어</h4>
+                        <div class="related-queries">
+                            <h5>상위 관련 검색어:</h5>
+                            ${relatedData.top_queries.map(q => `<span class="query-tag">${q.query} (${q.value})</span>`).join('')}
+                        </div>
+                        <div class="related-queries">
+                            <h5>급상승 관련 검색어:</h5>
+                            ${relatedData.rising_queries.map(q => `<span class="query-tag rising">${q.query} (${q.value})</span>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h4>🌍 지역별 관심도</h4>
+                        <div class="region-interest">
+                            ${regionData.regions.slice(0, 5).map(r => `
+                                <div class="region-item">
+                                    <span class="region-name">${r.region}</span>
+                                    <span class="interest-score">${r.interest}/100</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-section">
+                        <h4>👥 연령대별 관심도 (추정)</h4>
+                        <div class="age-interest">
+                            ${ageData.age_groups.map(age => `
+                                <div class="age-item">
+                                    <span class="age-group">${age.age_group}</span>
+                                    <span class="interest-score">${age.interest}/100</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Google Trends 키워드 분석 실패:', error);
+                document.getElementById('google-trends-results').innerHTML = 
+                    '<p class="error">키워드 분석을 불러올 수 없습니다.</p>';
+            }
+        }
+        
+        // 지역명 변환
+        function getRegionName(region) {
+            const regionNames = {
+                'KR': '한국', 'US': '미국', 'JP': '일본', 'CN': '중국', 'GB': '영국'
+            };
+            return regionNames[region] || region;
+        }
+        
+        // 카테고리명 변환
+        function getCategoryName(category) {
+            const categoryNames = {
+                'entertainment': '엔터테인먼트',
+                'business': '비즈니스',
+                'sports': '스포츠',
+                'health': '건강',
+                'science_tech': '과학기술'
+            };
+            return categoryNames[category] || category;
+        }
         
         // 연령대별 키워드 분석 로드
         async function loadAgeGroupKeywords() {
